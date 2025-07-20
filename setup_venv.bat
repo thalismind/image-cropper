@@ -1,6 +1,6 @@
 @echo off
 REM Intelligent Image Cropper - Virtual Environment Setup Script (Windows)
-REM This script creates a virtual environment and installs all dependencies
+REM This script creates or updates a virtual environment and installs all dependencies
 
 echo Intelligent Image Cropper - Virtual Environment Setup
 echo ==================================================
@@ -16,38 +16,44 @@ if errorlevel 1 (
 
 echo ✓ Python found
 
-REM Check if virtualenv is available
-python -m virtualenv --version >nul 2>&1
-if errorlevel 1 (
-    echo Installing virtualenv...
-    pip install virtualenv
-)
-
-REM Create virtual environment
-echo Creating virtual environment...
+REM Create or update virtual environment
+echo Setting up virtual environment...
 if exist venv (
-    echo ⚠️  Virtual environment already exists. Removing old one...
-    rmdir /s /q venv
+    echo ✓ Virtual environment already exists. Updating...
+    REM Activate existing environment to update it
+    call venv\Scripts\activate.bat
+
+    REM Upgrade pip
+    echo Upgrading pip...
+    python -m pip install --upgrade pip
+
+    REM Install/update Python dependencies
+    echo Installing/updating Python dependencies...
+    pip install -r requirements.txt
+
+    REM Install/update AI model packages
+    echo Installing/updating AI model packages...
+    pip install groundingdino-py segment-anything
+) else (
+    echo Creating new virtual environment...
+    python -m venv venv
+
+    REM Activate virtual environment
+    echo Activating virtual environment...
+    call venv\Scripts\activate.bat
+
+    REM Upgrade pip
+    echo Upgrading pip...
+    python -m pip install --upgrade pip
+
+    REM Install Python dependencies
+    echo Installing Python dependencies...
+    pip install -r requirements.txt
+
+    REM Install AI model packages
+    echo Installing AI model packages...
+    pip install groundingdino-py segment-anything
 )
-
-python -m virtualenv venv
-echo ✓ Virtual environment created
-
-REM Activate virtual environment
-echo Activating virtual environment...
-call venv\Scripts\activate.bat
-
-REM Upgrade pip
-echo Upgrading pip...
-python -m pip install --upgrade pip
-
-REM Install Python dependencies
-echo Installing Python dependencies...
-pip install -r requirements.txt
-
-REM Install AI model packages
-echo Installing AI model packages...
-pip install groundingdino-py segment-anything
 
 REM Create necessary directories
 echo Creating directories...

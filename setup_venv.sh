@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Intelligent Image Cropper - Virtual Environment Setup Script
-# This script creates a virtual environment and installs all dependencies
+# This script creates or updates a virtual environment and installs all dependencies
 
 set -e  # Exit on any error
 
@@ -20,37 +20,44 @@ fi
 
 echo "✓ Python version check passed: $python_version"
 
-# Check if virtualenv is available
-if ! command -v virtualenv &> /dev/null; then
-    echo "Installing virtualenv..."
-    pip3 install virtualenv
-fi
-
-# Create virtual environment
-echo "Creating virtual environment..."
+# Create or update virtual environment
+echo "Setting up virtual environment..."
 if [ -d "venv" ]; then
-    echo "⚠️  Virtual environment already exists. Removing old one..."
-    rm -rf venv
+    echo "✓ Virtual environment already exists. Updating..."
+    # Activate existing environment to update it
+    source venv/bin/activate
+
+    # Upgrade pip
+    echo "Upgrading pip..."
+    pip install --upgrade pip
+
+    # Install/update Python dependencies
+    echo "Installing/updating Python dependencies..."
+    pip install -r requirements.txt
+
+    # Install/update AI model packages
+    echo "Installing/updating AI model packages..."
+    pip install groundingdino-py segment-anything
+else
+    echo "Creating new virtual environment..."
+    python3 -m venv venv
+
+    # Activate virtual environment
+    echo "Activating virtual environment..."
+    source venv/bin/activate
+
+    # Upgrade pip
+    echo "Upgrading pip..."
+    pip install --upgrade pip
+
+    # Install Python dependencies
+    echo "Installing Python dependencies..."
+    pip install -r requirements.txt
+
+    # Install AI model packages
+    echo "Installing AI model packages..."
+    pip install groundingdino-py segment-anything
 fi
-
-virtualenv venv
-echo "✓ Virtual environment created"
-
-# Activate virtual environment
-echo "Activating virtual environment..."
-source venv/bin/activate
-
-# Upgrade pip
-echo "Upgrading pip..."
-pip install --upgrade pip
-
-# Install Python dependencies
-echo "Installing Python dependencies..."
-pip install -r requirements.txt
-
-# Install AI model packages
-echo "Installing AI model packages..."
-pip install groundingdino-py segment-anything
 
 # Create necessary directories
 echo "Creating directories..."
