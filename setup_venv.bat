@@ -33,7 +33,8 @@ if exist venv (
 
     REM Install/update AI model packages
     echo Installing/updating AI model packages...
-    pip install groundingdino-py segment-anything
+    pip install groundingdino-py
+    pip install git+https://github.com/facebookresearch/sam2.git
 ) else (
     echo Creating new virtual environment...
     python -m venv venv
@@ -52,7 +53,8 @@ if exist venv (
 
     REM Install AI model packages
     echo Installing AI model packages...
-    pip install groundingdino-py segment-anything
+    pip install groundingdino-py
+    pip install git+https://github.com/facebookresearch/sam2.git
 )
 
 REM Create necessary directories

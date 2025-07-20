@@ -37,7 +37,8 @@ if [ -d "venv" ]; then
 
     # Install/update AI model packages
     echo "Installing/updating AI model packages..."
-    pip install groundingdino-py segment-anything
+    pip install groundingdino-py
+    pip install git+https://github.com/facebookresearch/sam2.git
 else
     echo "Creating new virtual environment..."
     python3 -m venv venv
@@ -56,7 +57,8 @@ else
 
     # Install AI model packages
     echo "Installing AI model packages..."
-    pip install groundingdino-py segment-anything
+    pip install groundingdino-py
+    pip install git+https://github.com/facebookresearch/sam2.git
 fi
 
 # Create necessary directories
