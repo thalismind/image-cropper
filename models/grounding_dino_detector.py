@@ -16,8 +16,8 @@ import os
 class GroundingDINODetector:
     """Grounding DINO detector for text-guided object detection."""
 
-    def __init__(self, model_config_path: str = "models/groundingdino/groundingdino_swint_ogc.py",
-                 model_checkpoint_path: str = "models/groundingdino/groundingdino_swint_ogc.pth",
+    def __init__(self, model_config_path: str = "models/groundingdino/groundingdino_swinb_cogcoor.py",
+                 model_checkpoint_path: str = "models/groundingdino/groundingdino_swinb_cogcoor.pth",
                  device: str = "cuda" if torch.cuda.is_available() else "cpu"):
         """
         Initialize Grounding DINO detector.

@@ -31,12 +31,12 @@ def download_grounding_dino():
     """Download Grounding DINO model files."""
     print("Downloading Grounding DINO models...")
 
-    # Grounding DINO config and weights
+    # Grounding DINO config and weights (SwinB version)
     grounding_dino_urls = {
-        "models/groundingdino/groundingdino_swint_ogc.py":
-            "https://raw.githubusercontent.com/IDEA-Research/GroundingDINO/main/groundingdino/config/GroundingDINO_SwinT_OGC.py",
-        "models/groundingdino/groundingdino_swint_ogc.pth":
-            "https://github.com/IDEA-Research/GroundingDINO/releases/download/v0.1.0-alpha/groundingdino_swint_ogc.pth"
+        "models/groundingdino/groundingdino_swinb_cogcoor.py":
+            "https://raw.githubusercontent.com/IDEA-Research/GroundingDINO/main/groundingdino/config/GroundingDINO_SwinB_cfg.py",
+        "models/groundingdino/groundingdino_swinb_cogcoor.pth":
+            "https://github.com/IDEA-Research/GroundingDINO/releases/download/v0.1.0-alpha2/groundingdino_swinb_cogcoor.pth"
     }
 
     for filename, url in grounding_dino_urls.items():
@@ -49,10 +49,19 @@ def download_sam2():
     """Download SAM2.1 model files."""
     print("Downloading SAM2.1 models...")
 
-    # Also download original SAM model for compatibility
-    sam2_urls={
-        "models/sam2/sam_vit_h_4b8939.pth": "https://dl.fbaipublicfiles.com/segment_anything/sam_vit_h_4b8939.pth"
+    # Define the base URL for SAM 2.1 checkpoints
+    SAM2p1_BASE_URL = "https://dl.fbaipublicfiles.com/segment_anything_2/092824"
+
+    # SAM2.1 model URLs
+    sam2_urls = {
+        "models/sam2/sam2.1_hiera_tiny.pt": f"{SAM2p1_BASE_URL}/sam2.1_hiera_tiny.pt",
+        "models/sam2/sam2.1_hiera_small.pt": f"{SAM2p1_BASE_URL}/sam2.1_hiera_small.pt",
+        "models/sam2/sam2.1_hiera_base_plus.pt": f"{SAM2p1_BASE_URL}/sam2.1_hiera_base_plus.pt",
+        "models/sam2/sam2.1_hiera_large.pt": f"{SAM2p1_BASE_URL}/sam2.1_hiera_large.pt"
     }
+
+    # Also download original SAM model for compatibility
+    sam2_urls["models/sam2/sam_vit_h_4b8939.pth"] = "https://dl.fbaipublicfiles.com/segment_anything/sam_vit_h_4b8939.pth"
 
     for filename, url in sam2_urls.items():
         if not os.path.exists(filename):
@@ -76,11 +85,12 @@ def install_sam2():
     print("Installing SAM2...")
     try:
         import subprocess
-        subprocess.check_call([sys.executable, "-m", "pip", "install", "segment-anything"])
+        # Install the official SAM2.1 package from Meta AI
+        subprocess.check_call([sys.executable, "-m", "pip", "install", "git+https://github.com/facebookresearch/sam2.git"])
         print("SAM2 installed successfully")
     except Exception as e:
         print(f"Error installing SAM2: {e}")
-        print("Please install manually: pip install segment-anything")
+        print("Please install manually: pip install git+https://github.com/facebookresearch/sam2.git")
 
 def main():
     """Main download function."""

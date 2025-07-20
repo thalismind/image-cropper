@@ -1,5 +1,5 @@
 """
-SAM2 segmenter for precise object segmentation.
+SAM2.1 segmenter for precise object segmentation.
 """
 
 import torch
@@ -7,36 +7,28 @@ import numpy as np
 import cv2
 from typing import List, Tuple, Dict, Any, Optional
 import supervision as sv
-from segment_anything import SamPredictor, sam_model_registry
+from sam2.sam2_image_predictor import SAM2ImagePredictor
 import os
 
 class SAM2Segmenter:
     """SAM2.1 segmenter for precise object segmentation."""
 
-    def __init__(self, model_path: str = "models/sam2/sam_vit_h_4b8939.pth",
-                 model_type: str = "vit_h",
-                 device: str = "cuda" if torch.cuda.is_available() else "cpu"):
+    def __init__(self, device: str = "cuda" if torch.cuda.is_available() else "cpu"):
         """
         Initialize SAM2.1 segmenter.
 
         Args:
-            model_path: Path to SAM2.1 model checkpoint
-            model_type: Type of SAM2.1 model (hiera_tiny, hiera_small, hiera_base_plus, hiera_large)
             device: Device to run inference on
         """
         self.device = device
-        self.model_type = model_type
-        self.predictor = self._load_model(model_path)
+        self.predictor = self._load_model()
 
-    def _load_model(self, model_path: str) -> SamPredictor:
+    def _load_model(self) -> SAM2ImagePredictor:
         """Load SAM2.1 model."""
         try:
-            # Load SAM2.1 model
-            sam = sam_model_registry[self.model_type](checkpoint=model_path)
-            sam.to(device=self.device)
-
-            # Create predictor
-            predictor = SamPredictor(sam)
+            # Load SAM2.1 model using the correct API
+            predictor = SAM2ImagePredictor.from_pretrained("facebook/sam2-hiera-large")
+            predictor.to(device=self.device)
 
             print(f"SAM2.1 model loaded successfully on {self.device}")
             return predictor
@@ -74,11 +66,12 @@ class SAM2Segmenter:
             # Convert box to SAM2 format [x1, y1, x2, y2]
             input_box = np.array(box)
 
-            # Get mask
-            mask, _, _ = self.predictor.predict(
-                box=input_box,
-                multimask_output=False
-            )
+            # Get mask using SAM2.1 API with proper inference mode
+            with torch.inference_mode(), torch.autocast("cuda", dtype=torch.bfloat16):
+                mask, _, _ = self.predictor.predict(
+                    box=input_box,
+                    multimask_output=False
+                )
 
             masks.append(mask)
 
@@ -100,12 +93,13 @@ class SAM2Segmenter:
         """
         self.set_image(image)
 
-        # Get mask
-        mask, _, _ = self.predictor.predict(
-            point_coords=points,
-            point_labels=labels,
-            multimask_output=False
-        )
+        # Get mask using SAM2.1 API with proper inference mode
+        with torch.inference_mode(), torch.autocast("cuda", dtype=torch.bfloat16):
+            mask, _, _ = self.predictor.predict(
+                point_coords=points,
+                point_labels=labels,
+                multimask_output=False
+            )
 
         return [mask]
 
