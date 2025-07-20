@@ -1,0 +1,1 @@
+# Models package for intelligent image cropping
