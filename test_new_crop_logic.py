@@ -43,7 +43,7 @@ def test_crop_logic():
 
     # Initialize cropper with small minimum crop size for testing
     cropper = IntelligentCropper(
-        confidence_threshold=0.3,
+        confidence_threshold=0.25,
         min_area=50,
         padding=20,
         min_crop_size=100

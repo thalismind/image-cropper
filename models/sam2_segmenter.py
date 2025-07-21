@@ -82,6 +82,9 @@ class SAM2Segmenter:
             # Convert torch tensor to numpy array and ensure boolean dtype
             if torch.is_tensor(mask):
                 mask = mask.cpu().numpy()
+            # Remove batch dimension if present
+            if mask.ndim == 3 and mask.shape[0] == 1:
+                mask = mask[0]
             mask = mask.astype(bool)
             masks.append(mask)
 
@@ -122,6 +125,9 @@ class SAM2Segmenter:
         # Convert torch tensor to numpy array and ensure boolean dtype
         if torch.is_tensor(mask):
             mask = mask.cpu().numpy()
+        # Remove batch dimension if present
+        if mask.ndim == 3 and mask.shape[0] == 1:
+            mask = mask[0]
         mask = mask.astype(bool)
 
         return [mask]
@@ -153,8 +159,17 @@ class SAM2Segmenter:
         else:
             image_rgb = image
 
+        # Convert normalized coordinates to pixel coordinates
+        height, width = image.shape[:2]
+        pixel_boxes = detections.xyxy.copy()
+
+        # Check if boxes are normalized (0-1 range)
+        if np.max(pixel_boxes) <= 1.0:
+            pixel_boxes[:, [0, 2]] *= width   # x coordinates
+            pixel_boxes[:, [1, 3]] *= height  # y coordinates
+
         # Segment from bounding boxes
-        masks = self.segment_from_boxes(detections.xyxy, image_rgb)
+        masks = self.segment_from_boxes(pixel_boxes, image_rgb)
 
         # Calculate areas
         include_masks = []

@@ -63,8 +63,8 @@ Examples:
     parser.add_argument(
         "--confidence",
         type=float,
-        default=0.5,
-        help="Detection confidence threshold (default: 0.5)"
+        default=0.25,
+        help="Detection confidence threshold (default: 0.25)"
     )
 
     parser.add_argument(

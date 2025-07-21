@@ -246,3 +246,6 @@ Thumbs.db
 *.pt
 *.pth
 *.ckpt
+
+# Debug
+debug_output/

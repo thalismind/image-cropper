@@ -64,7 +64,7 @@ def run_examples():
     # Initialize cropper
     print("\nInitializing AI models...")
     cropper = IntelligentCropper(
-        confidence_threshold=0.3,
+        confidence_threshold=0.25,
         min_area=100,
         padding=30
     )

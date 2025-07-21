@@ -53,7 +53,7 @@ def run_demo():
     # Initialize cropper
     print("Initializing AI models...")
     cropper = IntelligentCropper(
-        confidence_threshold=0.3,  # Lower threshold for demo
+        confidence_threshold=0.25,  # Lower threshold for demo
         min_area=100,
         padding=30,
         min_crop_size=150

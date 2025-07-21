@@ -12,7 +12,7 @@ from .sam2_segmenter import SAM2Segmenter
 class IntelligentCropper:
     """Intelligent cropper that maximizes included areas while excluding unwanted regions."""
 
-    def __init__(self, confidence_threshold: float = 0.5,
+    def __init__(self, confidence_threshold: float = 0.25,
                  min_area: int = 1000, padding: int = 50, min_crop_size: int = 200):
         """
         Initialize intelligent cropper.
@@ -136,6 +136,19 @@ class IntelligentCropper:
 
         if num_features == 0:
             return []
+
+                # If we have too many small components, try to merge them
+        original_features = num_features
+        if num_features > 10:
+            # Use morphological operations to merge nearby components
+            from scipy import ndimage
+            kernel = np.ones((50, 50), dtype=bool)  # 50x50 kernel to merge nearby components
+            merged_mask = ndimage.binary_dilation(include_mask, structure=kernel)
+            merged_mask = ndimage.binary_erosion(merged_mask, structure=kernel)
+
+            # Re-label the merged mask
+            labeled_mask, num_features = ndimage.label(merged_mask)
+            print(f"Merged {num_features} components from original {original_features}")
 
         # Process each connected component
         for label in range(1, num_features + 1):
