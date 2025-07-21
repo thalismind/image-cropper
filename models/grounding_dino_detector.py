@@ -155,11 +155,21 @@ class GroundingDINODetector:
         }
 
         # Detect include classes
-        for class_name in include_classes:
+        if include_classes:
+            for class_name in include_classes:
+                detections, annotated_img, detection_info = self.detect(
+                    image, class_name, confidence_threshold
+                )
+                results['include'][class_name] = {
+                    'detections': detections,
+                    'detection_info': detection_info
+                }
+        else:
+            # If no include classes specified, detect all objects using a generic prompt
             detections, annotated_img, detection_info = self.detect(
-                image, class_name, confidence_threshold
+                image, "object", confidence_threshold
             )
-            results['include'][class_name] = {
+            results['include']['object'] = {
                 'detections': detections,
                 'detection_info': detection_info
             }

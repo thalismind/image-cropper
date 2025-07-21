@@ -29,6 +29,7 @@ Examples:
   python crop_images.py --input_dir ./images --output_dir ./cropped --include "person" --exclude "background"
   python crop_images.py --input_dir ./photos --include "car,person" --exclude "text,logo" --confidence 0.6
   python crop_images.py --input_dir ./dataset --include "animal" --exclude "human" --padding 100
+  python crop_images.py --input_dir ./images --output_dir ./cropped --exclude "text,watermark" --debug
         """
     )
 
@@ -49,8 +50,8 @@ Examples:
     parser.add_argument(
         "--include",
         type=str,
-        required=True,
-        help="Comma-separated keywords for areas to include"
+        default="",
+        help="Comma-separated keywords for areas to include (optional, if not specified will detect and include all objects)"
     )
 
     parser.add_argument(
@@ -215,9 +216,9 @@ def main():
     include_classes = [cls.strip() for cls in args.include.split(",") if cls.strip()]
     exclude_classes = [cls.strip() for cls in args.exclude.split(",") if cls.strip()]
 
+    # If no include classes specified, use empty list to include all detected objects
     if not include_classes:
-        print("Error: At least one include class must be specified")
-        return
+        print("No include classes specified - will include all detected objects")
 
     print(f"Include classes: {include_classes}")
     print(f"Exclude classes: {exclude_classes}")
