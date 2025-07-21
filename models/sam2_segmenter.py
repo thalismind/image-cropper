@@ -26,9 +26,8 @@ class SAM2Segmenter:
     def _load_model(self) -> SAM2ImagePredictor:
         """Load SAM2.1 model."""
         try:
-            # Load SAM2.1 model using the correct API
-            predictor = SAM2ImagePredictor.from_pretrained("facebook/sam2-hiera-large")
-            predictor.to(device=self.device)
+            # Load SAM2.1 model using the correct API with device specification
+            predictor = SAM2ImagePredictor.from_pretrained("facebook/sam2-hiera-large", device=self.device)
 
             print(f"SAM2.1 model loaded successfully on {self.device}")
             return predictor
@@ -67,12 +66,23 @@ class SAM2Segmenter:
             input_box = np.array(box)
 
             # Get mask using SAM2.1 API with proper inference mode
-            with torch.inference_mode(), torch.autocast("cuda", dtype=torch.bfloat16):
-                mask, _, _ = self.predictor.predict(
-                    box=input_box,
-                    multimask_output=False
-                )
+            if self.device == "cuda":
+                with torch.inference_mode(), torch.autocast("cuda", dtype=torch.bfloat16):
+                    mask, _, _ = self.predictor.predict(
+                        box=input_box,
+                        multimask_output=False
+                    )
+            else:
+                with torch.inference_mode():
+                    mask, _, _ = self.predictor.predict(
+                        box=input_box,
+                        multimask_output=False
+                    )
 
+            # Convert torch tensor to numpy array and ensure boolean dtype
+            if torch.is_tensor(mask):
+                mask = mask.cpu().numpy()
+            mask = mask.astype(bool)
             masks.append(mask)
 
         return masks
@@ -94,12 +104,25 @@ class SAM2Segmenter:
         self.set_image(image)
 
         # Get mask using SAM2.1 API with proper inference mode
-        with torch.inference_mode(), torch.autocast("cuda", dtype=torch.bfloat16):
-            mask, _, _ = self.predictor.predict(
-                point_coords=points,
-                point_labels=labels,
-                multimask_output=False
-            )
+        if self.device == "cuda":
+            with torch.inference_mode(), torch.autocast("cuda", dtype=torch.bfloat16):
+                mask, _, _ = self.predictor.predict(
+                    point_coords=points,
+                    point_labels=labels,
+                    multimask_output=False
+                )
+        else:
+            with torch.inference_mode():
+                mask, _, _ = self.predictor.predict(
+                    point_coords=points,
+                    point_labels=labels,
+                    multimask_output=False
+                )
+
+        # Convert torch tensor to numpy array and ensure boolean dtype
+        if torch.is_tensor(mask):
+            mask = mask.cpu().numpy()
+        mask = mask.astype(bool)
 
         return [mask]
 
@@ -155,10 +178,14 @@ class SAM2Segmenter:
         total_exclude_mask = np.zeros_like(masks[0], dtype=bool) if masks else np.zeros((image.shape[0], image.shape[1]), dtype=bool)
 
         for mask in include_masks:
-            total_include_mask |= mask
+            # Convert mask to boolean array before bitwise operation
+            mask_bool = mask.astype(bool)
+            total_include_mask |= mask_bool
 
         for mask in exclude_masks:
-            total_exclude_mask |= mask
+            # Convert mask to boolean array before bitwise operation
+            mask_bool = mask.astype(bool)
+            total_exclude_mask |= mask_bool
 
         return {
             'masks': masks,
