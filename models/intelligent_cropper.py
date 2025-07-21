@@ -287,3 +287,24 @@ class IntelligentCropper:
                        cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 0), 2)
 
         return vis_image
+
+    def create_debug_visualization(self, image: np.ndarray,
+                                 processing_results: Dict[str, Any]) -> np.ndarray:
+        """
+        Create debug visualization with color-coded masks.
+
+        Args:
+            image: Original image
+            processing_results: Results from process_image
+
+        Returns:
+            Debug visualization image with color coding:
+            - Green: Include areas
+            - Red: Exclude areas
+            - White: Crop areas
+            - Black: Areas that will be cropped out
+        """
+        crop_areas = processing_results.get('crop_areas', [])
+        segmentation_results = processing_results.get('segmentation_results', {})
+
+        return self.segmenter.create_debug_visualization(image, segmentation_results, crop_areas)

@@ -102,6 +102,12 @@ Examples:
     )
 
     parser.add_argument(
+        "--debug",
+        action="store_true",
+        help="Save debug images with color-coded masks (green=include, red=exclude, white=crop area, black=cropped out)"
+    )
+
+    parser.add_argument(
         "--max_images",
         type=int,
         default=None,
@@ -126,7 +132,7 @@ def get_image_files(input_dir: str, glob_pattern: str) -> List[str]:
 
 def process_single_image(image_path: str, cropper: IntelligentCropper,
                         include_classes: List[str], exclude_classes: List[str],
-                        output_dir: str, save_visualizations: bool = False) -> bool:
+                        output_dir: str, save_visualizations: bool = False, debug: bool = False) -> bool:
     """
     Process a single image.
 
@@ -137,6 +143,7 @@ def process_single_image(image_path: str, cropper: IntelligentCropper,
         exclude_classes: List of classes to exclude
         output_dir: Output directory
         save_visualizations: Whether to save visualization images
+        debug: Whether to save debug images with color-coded masks
 
     Returns:
         True if processing was successful, False otherwise
@@ -153,6 +160,11 @@ def process_single_image(image_path: str, cropper: IntelligentCropper,
 
         if not results['success']:
             print(f"Warning: No valid crop area found for {image_path}")
+            # Even if no crop area found, save debug image if requested
+            if debug:
+                debug_image = cropper.create_debug_visualization(image, results)
+                debug_path = os.path.join(output_dir, f"debug_{os.path.basename(image_path)}")
+                cv2.imwrite(debug_path, debug_image)
             return False
 
         # Save cropped images (multiple crops possible)
@@ -174,6 +186,12 @@ def process_single_image(image_path: str, cropper: IntelligentCropper,
             vis_image = cropper.create_visualization(image, results)
             vis_path = os.path.join(output_dir, f"vis_{os.path.basename(image_path)}")
             cv2.imwrite(vis_path, vis_image)
+
+        # Save debug image if requested
+        if debug:
+            debug_image = cropper.create_debug_visualization(image, results)
+            debug_path = os.path.join(output_dir, f"debug_{os.path.basename(image_path)}")
+            cv2.imwrite(debug_path, debug_image)
 
         return True
 
@@ -239,7 +257,7 @@ def main():
     for image_path in tqdm(image_files, desc="Processing images"):
         success = process_single_image(
             image_path, cropper, include_classes, exclude_classes,
-            args.output_dir, args.save_visualizations
+            args.output_dir, args.save_visualizations, args.debug
         )
 
         if success:
@@ -259,6 +277,9 @@ def main():
 
     if args.save_visualizations:
         print("Visualization images saved with 'vis_' prefix")
+
+    if args.debug:
+        print("Debug images saved with 'debug_' prefix")
 
 if __name__ == "__main__":
     main()

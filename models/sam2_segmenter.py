@@ -224,3 +224,53 @@ class SAM2Segmenter:
             vis_image[exclude_mask] = vis_image[exclude_mask] * 0.7 + np.array([0, 0, 255]) * 0.3
 
         return vis_image
+
+    def create_debug_visualization(self, image: np.ndarray,
+                                 segmentation_result: Dict[str, Any],
+                                 crop_areas: List[Tuple[int, int, int, int]] = None) -> np.ndarray:
+        """
+        Create debug visualization with color-coded masks.
+
+        Args:
+            image: Original image
+            segmentation_result: Results from segment_combined
+            crop_areas: List of crop areas as (x1, y1, x2, y2) tuples
+
+        Returns:
+            Debug visualization image with color coding:
+            - Green: Include areas
+            - Red: Exclude areas
+            - White: Crop areas
+            - Black: Areas that will be cropped out
+        """
+        height, width = image.shape[:2]
+        debug_image = np.zeros((height, width, 3), dtype=np.uint8)
+
+        # Start with black background (areas that will be cropped out)
+        debug_image[:] = [0, 0, 0]
+
+        # Add include areas (green)
+        if 'total_include_mask' in segmentation_result:
+            include_mask = segmentation_result['total_include_mask']
+            # Ensure mask has correct dimensions
+            if include_mask.ndim == 2 and include_mask.shape == (height, width):
+                debug_image[include_mask] = [0, 255, 0]  # Green
+
+        # Add exclude areas (red)
+        if 'total_exclude_mask' in segmentation_result:
+            exclude_mask = segmentation_result['total_exclude_mask']
+            # Ensure mask has correct dimensions
+            if exclude_mask.ndim == 2 and exclude_mask.shape == (height, width):
+                debug_image[exclude_mask] = [0, 0, 255]  # Red
+
+        # Add crop areas (white)
+        if crop_areas:
+            for crop_area in crop_areas:
+                x1, y1, x2, y2 = crop_area
+                debug_image[y1:y2, x1:x2] = [255, 255, 255]  # White
+
+        # If no crop areas specified but we have include areas, show the whole image as crop area
+        elif 'total_include_mask' in segmentation_result and np.sum(segmentation_result['total_include_mask']) > 0:
+            debug_image[:] = [255, 255, 255]  # White (whole image as crop area)
+
+        return debug_image
